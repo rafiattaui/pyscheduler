@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from process import Process
-from sortedcontainers import sortedlist
+import sortedcontainers as sc
 
 class BaseSchedulingAlgorithm(ABC):
     processes: list[Process]
@@ -15,7 +15,13 @@ class BaseSchedulingAlgorithm(ABC):
         
 class FirstComeFirstServe(BaseSchedulingAlgorithm):
     
+    def __init__(self, processes: list[Process]):
+        self.processes = sc.SortedList(processes, key=lambda process:process.arrival_time)
+        # list sorted by their arrival time
+        
+
     def tick(self) -> int:
+        pass
         
     
 class ShortestJobFirst(BaseSchedulingAlgorithm):
