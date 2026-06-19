@@ -14,7 +14,7 @@ class Event:
         self.priority = priority
         self.process = process
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"Event {self.type}, Time: {self.time}, Priority: {self.priority}, Process: {self.process}"
 
     def __lt__(self, other) -> bool:
@@ -38,6 +38,16 @@ class EventQueue:
         if self.events:
             return heapq.heappop(self.events)
         raise QueueEmptyError("No more events in the queue.")
+    
+    def peek(self) -> Event:
+        return self.events[0]
+    
+    def isEmpty(self) -> bool:
+        # true if atleast one item, false if empty
+        return (bool(self.events))
+    
+    def __len__(self) -> int:
+        return len(self.events)
 
 
 if __name__ == "__main__":
