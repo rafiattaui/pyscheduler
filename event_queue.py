@@ -1,6 +1,6 @@
 import heapq
-from process import Process
 import logging
+from process import Process
 
 logger = logging.getLogger(__name__)
 

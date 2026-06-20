@@ -1,5 +1,5 @@
 from event_queue import EventQueue, Event
-from scheduler import FCFS, SJF
+from scheduler import FCFS, SJF, RoundRobin
 from process import Process, CPU
 from metrics import Metrics
 import logging
@@ -15,7 +15,7 @@ class Program:
         self.event_queue = EventQueue()
         self.clock = 0
         self.cpu = CPU()
-        self.scheduler = SJF(preemptive=True)
+        self.scheduler = RoundRobin(2)
         self.metrics = Metrics()
 
     def run(self):
@@ -41,6 +41,9 @@ class Program:
                     return 1
                 case "SCHEDULE":
                     self._handle_schedule(event)
+                    return 1
+                case "TIME_SLICE_EXPIRED":
+                    self._handle_time_slice_expired(event)
                     return 1
                 case _:
                     logger.debug("T{self.clock}: Unknown event type polled.")
@@ -99,6 +102,10 @@ class Program:
         process = self.scheduler.select_next()
         self.cpu.assign(process, self.clock)
 
+        time_slice = self.scheduler.get_time_slice_event(process, self.clock)
+        if time_slice:
+            self.event_queue.add_event(time_slice)
+
         completion = Event(
             "COMPLETION",
             self.clock + process.remaining_time,  # finish time
@@ -108,6 +115,11 @@ class Program:
 
         self.cpu.process_completion_event = completion
         self.event_queue.add_event(completion)
+
+    def _handle_time_slice_expired(self, event: Event):
+        process = self.cpu.preempt(self.clock)
+        self.scheduler.add_process(process)
+        self.event_queue.add_event(Event("SCHEDULE", self.clock, 1, None))
 
     def load_processes(self, processes: list[Process]):
         for process in processes:
