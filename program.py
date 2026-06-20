@@ -135,7 +135,10 @@ class Program:
         completion = Event(
             "COMPLETION",
             self.clock + process.remaining_time,  # finish time
-            0,  # priority
+            -1,  # priority: must run before any same-tick ARRIVAL (priority 0).
+                 # Otherwise a process finishing exactly this tick could be
+                 # incorrectly "preempted" by an arrival processed first,
+                 # leaving it stuck in the ready queue with remaining_time=0.
             process,  # carry process for metrics
         )
 

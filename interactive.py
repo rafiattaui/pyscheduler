@@ -32,14 +32,6 @@ SCHEDULER_MAP = {
     "rr": RoundRobin(quantum=2),
 }
 
-class TextualLogHandler(logging.Handler):
-    def __init__(self, log_widget: RichLog):
-        super().__init__()
-        self._log = log_widget
-
-    def emit(self, record: logging.LogRecord):
-        self._log.write(self.format(record))
-
 class LabeledSelect(Vertical):
     DEFAULT_CSS = """
     LabeledSelect {
