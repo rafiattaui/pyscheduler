@@ -1,0 +1,12 @@
+#sidebar {
+    width: 38;
+    height: 100%;
+    border-right: solid $panel 50%;
+    padding: 0 2;
+}
+
+#add-process-btn {
+    margin: 1 2;
+    color: $text;
+    text-style: bold;
+}

@@ -8,4 +8,6 @@ dependencies = [
     "black>=26.5.1",
     "pandas>=3.0.3",
     "plotly>=6.8.0",
+    "textual>=8.2.7",
+    "textual-dev>=1.8.0",
 ]
