@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class Program:
-    def __init__(self):
+    def __init__(self, scheduler=RoundRobin(2)):
         self.is_running = False
         self.event_queue = EventQueue()
         self.clock = 0
         self.cpu = CPU()
-        self.scheduler = RoundRobin(2)
+        self.scheduler = scheduler
         self.metrics = Metrics()
 
     def run(self):
@@ -139,13 +139,44 @@ class Program:
 
 
 def main():
-    process1 = Process(pid=1, arrival_time=1, burst_time=6, priority=1)
-    process2 = Process(2, 2, 3, 1)
-    process3 = Process(3, 3, 1, 1)
+    processes = []
 
-    processes = [process1, process2, process3]
+    print("=== PyScheduler ===")
+    print("Schedulers: fcfs, sjf, sjf-pe, rr")
+    scheduler_input = input("Select scheduler: ").strip().lower()
 
-    program = Program()
+    scheduler_map = {
+        "fcfs": FCFS(),
+        "sjf": SJF(preemptive=False),
+        "sjf-pe": SJF(preemptive=True),
+        "rr": RoundRobin(quantum=int(input("Quantum: "))) if scheduler_input == "rr" else None
+    }
+
+    scheduler = scheduler_map.get(scheduler_input)
+    if not scheduler:
+        print("Invalid scheduler.")
+        return
+
+    print("\nAdd processes (leave PID blank to stop):")
+    while True:
+        pid_input = input("PID: ").strip()
+        if not pid_input:
+            break
+        try:
+            pid      = int(pid_input)
+            at       = int(input("Arrival Time: "))
+            bt       = int(input("Burst Time: "))
+            priority = int(input("Priority: "))
+            processes.append(Process(pid, at, bt, priority))
+            print(f"Added P{pid}\n")
+        except ValueError:
+            print("Invalid input, try again.\n")
+
+    if not processes:
+        print("No processes added.")
+        return
+
+    program = Program(scheduler=scheduler)
     program.load_processes(processes)
 
     program.run()
