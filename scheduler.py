@@ -104,6 +104,34 @@ class RoundRobin(FCFS):
     
     def __repr__(self):
         return f"Round Robin Scheduler"
+    
+class PriorityScheduler(BaseScheduler):
+    def __init__(self, preemptive: bool = False):
+        self.readyqueue = []
+        self.preemptive = preemptive
+
+    def select_next(self) -> Process:
+        # pop highest priority (lowest number = highest priority)
+        highest = min(self.readyqueue, key=lambda p: p.priority)
+        self.readyqueue.remove(highest)
+        return highest
+
+    def add_process(self, process: Process):
+        self.readyqueue.append(process)
+
+    def is_empty(self) -> bool:
+        return len(self.readyqueue) == 0
+
+    def should_preempt(self, current_process: Process, new_process: Process) -> bool:
+        if not self.preemptive:
+            return False
+        return new_process.priority < current_process.priority
+
+    def get_time_slice_event(self, process, clock):
+        return None
+
+    def __repr__(self):
+        return f"Priority Scheduler (preemptive={self.preemptive}), Ready Queue: {self.readyqueue}"
 
 if __name__ == "__main__":
     scheduler = FCFS()

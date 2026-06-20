@@ -1,5 +1,5 @@
 from event_queue import EventQueue, Event
-from scheduler import FCFS, SJF, RoundRobin
+from scheduler import FCFS, SJF, RoundRobin, PriorityScheduler
 from process import Process, CPU, generate_processes
 from metrics import Metrics
 import logging
@@ -142,14 +142,16 @@ def main():
     processes = []
 
     print("=== PyScheduler ===")
-    print("Schedulers: fcfs, sjf, sjf-pe, rr")
+    print("Schedulers: fcfs, sjf, sjf-pe, rr, priority, priority-pe")
     scheduler_input = input("Select scheduler: ").strip().lower()
 
     scheduler_map = {
         "fcfs": FCFS(),
         "sjf": SJF(preemptive=False),
         "sjf-pe": SJF(preemptive=True),
-        "rr": RoundRobin(quantum=int(input("Quantum: "))) if scheduler_input == "rr" else None
+        "rr": RoundRobin(quantum=int(input("Quantum: "))) if scheduler_input == "rr" else None,
+        "priority": PriorityScheduler(preemptive=False),
+        "priority-pe": PriorityScheduler(preemptive=True),
     }
 
     scheduler = scheduler_map.get(scheduler_input)
