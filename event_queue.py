@@ -21,7 +21,7 @@ class Event:
         self.valid: bool = True
 
     def __repr__(self) -> str:
-        return f"Event {self.type}, Time: {self.time}, Priority: {self.priority}, Process: {self.process}"
+        return f"[{self.type}] T={self.time} PRI={self.priority} P={self.process.pid if self.process else None}"
 
     def __lt__(self, other) -> bool:
         if self.time != other.time:  # compare based on time

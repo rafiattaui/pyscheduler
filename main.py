@@ -1,5 +1,5 @@
 from event_queue import EventQueue, Event
-from scheduler import FCFS
+from scheduler import FCFS, SJF
 from process import Process, CPU
 from metrics import Metrics
 import logging
@@ -15,7 +15,7 @@ class Program:
         self.event_queue = EventQueue()
         self.clock = 0
         self.cpu = CPU()
-        self.scheduler = FCFS()
+        self.scheduler = SJF(preemptive=True)
         self.metrics = Metrics()
 
     def run(self):
@@ -66,10 +66,20 @@ class Program:
                     None,  # it will take the process from the scheduler
                 )
             )
+        elif status == "BUSY":
+            if self.scheduler.should_preempt(self.cpu.process, event.process):
+                # if true,
+                # release the current process
+                # and a create new event to schedule the process
+                # at the same time
+                process = self.cpu.preempt(self.clock)
+                self.scheduler.add_process(process)
+                self.event_queue.add_event(Event("SCHEDULE", self.clock, 1, None))
 
     def _handle_completion(self, event: Event):
         # release the current process from the cpu
         completed_process = self.cpu.process
+
         self.cpu.release()
         logger.debug(
             f"T{self.clock}: process {event.process.pid} completed at time {self.clock}"
@@ -107,9 +117,9 @@ class Program:
 
 
 def main():
-    process1 = Process(1, 1, 3, 1)
-    process2 = Process(2, 4, 2, 1)
-    process3 = Process(3, 7, 1, 1)
+    process1 = Process(pid=1, arrival_time=1, burst_time=6, priority=1)
+    process2 = Process(2, 2, 3, 1)
+    process3 = Process(3, 3, 1, 1)
 
     processes = [process1, process2, process3]
 

@@ -10,10 +10,13 @@ class Process:
         self.burst_time = burst_time
         self.remaining_time = burst_time
         self.priority = priority
-        self.state: str = "WAITING"  # Possible states: WAITING, RUNNING, COMPLETED
 
     def __repr__(self) -> str:
-        return f"Process ID: {self.pid}, AT: {self.arrival_time}, BT: {self.burst_time}, Remaining Time: {self.remaining_time}, Priority: {self.priority}, State: {self.state}"
+        return f"[P{self.pid}] AT={self.arrival_time} BT={self.burst_time} RT={self.remaining_time} PRI={self.priority}"
+
+    def __lt__(self, other: "Process"):
+        # compare based on remaining_time
+        return self.remaining_time < other.remaining_time
 
     def reset(self):
         pass
@@ -39,15 +42,17 @@ class CPU:
         # for processes that have finished
         if self.status == "BUSY":
             self.process = None
+            self.process_completion_event = None
             self.status = "IDLE"
             logger.debug("process released, cpu now idle")
         else:
             logger.debug("No process to release.")
 
-    def interrupt(self, time: int) -> Process:
+    def preempt(self, time: int) -> Process:
         # calculate how much time the process ran
         time_ran = time - self.started_at
         self.process.remaining_time -= time_ran
+        logger.debug(f"T{time}: preemptively stopping process {self.process.pid} with remaining time: {self.process.remaining_time}")
         # invalidate the old completion event,
         # a new completion event will be created
         self.process_completion_event.valid = False
