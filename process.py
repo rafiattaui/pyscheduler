@@ -24,6 +24,7 @@ class CPU:
         self.process: Process = None
         self.status = "IDLE"  # IDLE , BUSY
         self.started_at: int = None
+        self.process_completion_event: "Event" = None
 
     def assign(self, process: Process, started_at: int):
         if self.status == "BUSY":
@@ -35,10 +36,24 @@ class CPU:
             logger.debug(f"T{started_at}: CPU assigned process {process.pid}")
 
     def release(self):
-        # let go of current process
+        # for processes that have finished
         if self.status == "BUSY":
             self.process = None
             self.status = "IDLE"
             logger.debug("process released, cpu now idle")
         else:
             logger.debug("No process to release.")
+
+    def interrupt(self, time: int) -> Process:
+        # calculate how much time the process ran
+        time_ran = time - self.started_at
+        self.process.remaining_time -= time_ran
+        # invalidate the old completion event,
+        # a new completion event will be created
+        self.process_completion_event.valid = False
+        self.process_completion_event = None
+        process = self.process
+        self.process = None
+        self.status = "IDLE"
+
+        return process

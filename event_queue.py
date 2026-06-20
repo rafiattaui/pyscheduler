@@ -18,6 +18,7 @@ class Event:
         self.time = time
         self.priority = priority
         self.process = process
+        self.valid: bool = True
 
     def __repr__(self) -> str:
         return f"Event {self.type}, Time: {self.time}, Priority: {self.priority}, Process: {self.process}"

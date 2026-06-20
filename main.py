@@ -28,6 +28,8 @@ class Program:
     def _poll_event(self):
         if not self.event_queue.isEmpty():
             event = self.event_queue.get_next_event()
+            if not event.valid:
+                return 1
             self.clock = event.time
             logger.debug(f"T{self.clock}: event polled, {event}")
             match event.type:
@@ -86,15 +88,16 @@ class Program:
         # pops the ready queue
         process = self.scheduler.select_next()
         self.cpu.assign(process, self.clock)
-        # calculate finish time, and schedule a completion
-        self.event_queue.add_event(
-            Event(
-                "COMPLETION",
-                self.clock + process.remaining_time,
-                0,
-                process,  # pass process for metrics
-            )
+
+        completion = Event(
+            "COMPLETION",
+            self.clock + process.remaining_time,  # finish time
+            0,  # priority
+            process,  # carry process for metrics
         )
+
+        self.cpu.process_completion_event = completion
+        self.event_queue.add_event(completion)
 
     def load_processes(self, processes: list[Process]):
         for process in processes:
