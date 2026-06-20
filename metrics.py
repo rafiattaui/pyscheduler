@@ -51,8 +51,8 @@ class Metrics:
         for pid, start, end in self.segments:
             lines.append(f"  P{pid}: t={start} → t={end} (duration={end - start})")
         return "\n".join(lines)
-    
-    def plot_gantt(self):
+
+    def plot_gantt(self, title: str = "CPU Scheduling Gantt Chart"):
         rows = []
         for pid, start, end in self.segments:
             rows.append({
@@ -69,7 +69,7 @@ class Metrics:
             y="Process",
             base="Start",
             color="Process",
-            title="CPU Scheduling Gantt Chart",
+            title=title,
             orientation="h"
         )
 
@@ -80,3 +80,32 @@ class Metrics:
         )
 
         fig.show()
+
+
+def plot_comparison(results: dict[str, "Metrics"]):
+    """Bar chart comparing average turnaround / waiting time across multiple
+    scheduler runs. `results` maps an algorithm name (e.g. 'fcfs') to its
+    Metrics instance after a completed run."""
+    rows = []
+    for name, metrics in results.items():
+        rows.append({"Algorithm": name.upper(), "Metric": "Avg Turnaround", "Value": metrics.att})
+        rows.append({"Algorithm": name.upper(), "Metric": "Avg Waiting", "Value": metrics.awt})
+
+    df = pd.DataFrame(rows)
+
+    fig = px.bar(
+        df,
+        x="Algorithm",
+        y="Value",
+        color="Metric",
+        barmode="group",
+        title="Scheduler Comparison: Avg Turnaround vs Avg Waiting Time",
+        text_auto=".2f",
+    )
+
+    fig.update_layout(
+        xaxis_title="Scheduling Algorithm",
+        yaxis_title="Time",
+    )
+
+    fig.show()
