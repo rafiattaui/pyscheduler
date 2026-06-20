@@ -1,5 +1,8 @@
 import heapq
-from scheduler import Process
+from process import Process
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class QueueEmptyError(Exception):
@@ -8,7 +11,9 @@ class QueueEmptyError(Exception):
 
 class Event:
 
-    def __init__(self, event_type: str, time: int, priority: int, process: Process):
+    def __init__(
+        self, event_type: str, time: int, priority: int, process: Process | None
+    ):
         self.type = event_type
         self.time = time
         self.priority = priority
@@ -38,14 +43,14 @@ class EventQueue:
         if self.events:
             return heapq.heappop(self.events)
         raise QueueEmptyError("No more events in the queue.")
-    
+
     def peek(self) -> Event:
         return self.events[0]
-    
+
     def isEmpty(self) -> bool:
         # true if atleast one item, false if empty
-        return (bool(self.events))
-    
+        return len(self.events) == 0
+
     def __len__(self) -> int:
         return len(self.events)
 
@@ -53,9 +58,9 @@ class EventQueue:
 if __name__ == "__main__":
     # tests and usage
     queue = EventQueue()
-    event1 = Event("COMPLETED", 1, 0, "-")
-    event2 = Event("ARRIVAL", 1, 1, "-")
-    event3 = Event("ARRIVAL", 5, 0, "-")
+    event1 = Event("COMPLETED", 1, 0, None)
+    event2 = Event("ARRIVAL", 1, 1, None)
+    event3 = Event("ARRIVAL", 5, 0, None)
 
     events = [event1, event2, event3]
     for event in events:
