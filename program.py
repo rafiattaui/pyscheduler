@@ -1,6 +1,6 @@
 from event_queue import EventQueue, Event
 from scheduler import FCFS, SJF, RoundRobin
-from process import Process, CPU
+from process import Process, CPU, generate_processes
 from metrics import Metrics
 import logging
 import sys
@@ -156,25 +156,32 @@ def main():
     if not scheduler:
         print("Invalid scheduler.")
         return
+    
+    mode = input("Mode (manual / random): ").strip().lower()
+    if mode == "random":
+        n = int(input("Number of processes: "))
+        processes = generate_processes(n)
+        for p in processes:
+            print(f"  P{p.pid} AT={p.arrival_time} BT={p.burst_time} PRI={p.priority}")
+    else:
+        print("\nAdd processes (leave PID blank to stop):")
+        while True:
+            pid_input = input("PID: ").strip()
+            if not pid_input:
+                break
+            try:
+                pid      = int(pid_input)
+                at       = int(input("Arrival Time: "))
+                bt       = int(input("Burst Time: "))
+                priority = int(input("Priority: "))
+                processes.append(Process(pid, at, bt, priority))
+                print(f"Added P{pid}\n")
+            except ValueError:
+                print("Invalid input, try again.\n")
 
-    print("\nAdd processes (leave PID blank to stop):")
-    while True:
-        pid_input = input("PID: ").strip()
-        if not pid_input:
-            break
-        try:
-            pid      = int(pid_input)
-            at       = int(input("Arrival Time: "))
-            bt       = int(input("Burst Time: "))
-            priority = int(input("Priority: "))
-            processes.append(Process(pid, at, bt, priority))
-            print(f"Added P{pid}\n")
-        except ValueError:
-            print("Invalid input, try again.\n")
-
-    if not processes:
-        print("No processes added.")
-        return
+        if not processes:
+            print("No processes added.")
+            return
 
     program = Program(scheduler=scheduler)
     program.load_processes(processes)

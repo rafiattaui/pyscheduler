@@ -1,4 +1,6 @@
 import logging
+import random
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,3 +64,12 @@ class CPU:
         self.status = "IDLE"
 
         return process
+
+def generate_processes(n: int, max_arrival: int = 10, max_burst: int = 10, max_priority: int = 5) -> list[Process]:
+    processes = []
+    for i in range(1, n + 1):
+        arrival  = random.randint(0, max_arrival)
+        burst    = random.randint(1, max_burst)
+        priority = random.randint(0, max_priority)
+        processes.append(Process(i, arrival, burst, priority))
+    return processes
