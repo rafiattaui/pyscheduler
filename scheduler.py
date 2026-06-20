@@ -54,7 +54,7 @@ class FCFS(BaseScheduler):
         return None  # no time slicing
 
     def __repr__(self):
-        return f"FCFS Scheduler, Ready Queue: {self.readyqueue}"
+        return f"First Come First Serve Scheduler"
     
 class SJF(BaseScheduler):
     # shortest job first
@@ -84,6 +84,9 @@ class SJF(BaseScheduler):
         if not self.preemptive:
             return False
         return new_process.remaining_time < current_process.remaining_time
+    
+    def __repr__(self):
+        return f"Shortest Job First Scheduler"
 
 
 class RoundRobin(FCFS):
@@ -98,6 +101,9 @@ class RoundRobin(FCFS):
         if process.remaining_time > self.quantum:
             return Event("TIME_SLICE_EXPIRED", clock + self.quantum, 1, process)
         return None
+    
+    def __repr__(self):
+        return f"Round Robin Scheduler"
 
 if __name__ == "__main__":
     scheduler = FCFS()

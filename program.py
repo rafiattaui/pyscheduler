@@ -3,8 +3,9 @@ from scheduler import FCFS, SJF, RoundRobin
 from process import Process, CPU
 from metrics import Metrics
 import logging
+import sys
 
-logging.basicConfig(level=logging.DEBUG, format="[%(name)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(name)s] %(message)s")
 
 logger = logging.getLogger(__name__)
 
@@ -76,19 +77,22 @@ class Program:
                 # and a create new event to schedule the process
                 # at the same time
                 process = self.cpu.preempt(self.clock)
+                self.metrics.record_end(process, self.clock)
                 self.scheduler.add_process(process)
                 self.event_queue.add_event(Event("SCHEDULE", self.clock, 1, None))
 
     def _handle_completion(self, event: Event):
         # release the current process from the cpu
         completed_process = self.cpu.process
-
         self.cpu.release()
         logger.debug(
             f"T{self.clock}: process {event.process.pid} completed at time {self.clock}"
         )
         logger.debug(f"T{self.clock}: cpu now idle")
         # record metrics here
+        
+        self.metrics.add_process(completed_process, self.clock)
+        self.metrics.record_end(completed_process, self.clock)
 
         # check if ready queue empty
         # if ready queue has a process
@@ -101,7 +105,10 @@ class Program:
         # pops the ready queue
         process = self.scheduler.select_next()
         self.cpu.assign(process, self.clock)
+        self.metrics.record_start(process, self.clock)
 
+        # check if scheduler uses time slices
+        # if it does, it will return a time_slice event that we can queue to the event queue
         time_slice = self.scheduler.get_time_slice_event(process, self.clock)
         if time_slice:
             self.event_queue.add_event(time_slice)
@@ -117,7 +124,10 @@ class Program:
         self.event_queue.add_event(completion)
 
     def _handle_time_slice_expired(self, event: Event):
+        # when time slice expires, the cpu will preemptively stop the process,
+        # the previous completion event will be invalidated, and a new one will be made
         process = self.cpu.preempt(self.clock)
+        self.metrics.record_end(process, self.clock)
         self.scheduler.add_process(process)
         self.event_queue.add_event(Event("SCHEDULE", self.clock, 1, None))
 
@@ -139,6 +149,9 @@ def main():
     program.load_processes(processes)
 
     program.run()
+    print(program.scheduler)
+    print(program.metrics)
+    program.metrics.plot_gantt()
 
 
 if __name__ == "__main__":

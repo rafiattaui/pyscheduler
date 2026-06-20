@@ -54,7 +54,7 @@ class CPU:
         self.process.remaining_time -= time_ran
         logger.debug(f"T{time}: preemptively stopping process {self.process.pid} with remaining time: {self.process.remaining_time}")
         # invalidate the old completion event,
-        # a new completion event will be created
+        # a new completion event will be created via handle_schedule
         self.process_completion_event.valid = False
         self.process_completion_event = None
         process = self.process
