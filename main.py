@@ -1,14 +1,13 @@
 from event_queue import EventQueue, Event
 from scheduler import FCFS
 from process import Process, CPU
+from metrics import Metrics
 import logging
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="[%(name)s] %(message)s"
-)
+logging.basicConfig(level=logging.DEBUG, format="[%(name)s] %(message)s")
 
 logger = logging.getLogger(__name__)
+
 
 class Program:
     def __init__(self):
@@ -17,7 +16,7 @@ class Program:
         self.clock = 0
         self.cpu = CPU()
         self.scheduler = FCFS()
-        self.metrics = None
+        self.metrics = Metrics()
 
     def run(self):
         self.is_running = True
@@ -70,7 +69,9 @@ class Program:
         # release the current process from the cpu
         completed_process = self.cpu.process
         self.cpu.release()
-        logger.debug(f"T{self.clock}: process {event.process.pid} completed at time {self.clock}")
+        logger.debug(
+            f"T{self.clock}: process {event.process.pid} completed at time {self.clock}"
+        )
         logger.debug(f"T{self.clock}: cpu now idle")
         # record metrics here
 

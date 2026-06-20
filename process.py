@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Process:
     def __init__(self, pid: int, arrival_time: int, burst_time: int, priority: int):
         self.pid = pid
