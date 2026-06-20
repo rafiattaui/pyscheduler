@@ -5,7 +5,7 @@ from typing import Callable
 from event_queue import EventQueue, Event
 from scheduler import BaseScheduler, FCFS, SJF, RoundRobin, PriorityScheduler
 from process import Process, CPU, generate_processes
-from metrics import Metrics, plot_comparison
+from metrics import Metrics, plot_comparison, build_process_color_map
 
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(message)s")
 
@@ -284,8 +284,9 @@ def run_compare_flow():
     print_comparison_table(results)
 
     if input("\nShow gantt chart for each scheduler? (y/n): ").strip().lower() == "y":
+        color_map = build_process_color_map([p.pid for p in processes])
         for name, metrics in results.items():
-            metrics.plot_gantt(title=f"Gantt Chart - {name.upper()}")
+            metrics.plot_gantt(title=f"Gantt Chart - {name.upper()}", color_map=color_map)
 
     if input("Show side-by-side comparison chart? (y/n): ").strip().lower() == "y":
         plot_comparison(results)

@@ -8,6 +8,7 @@ class Metrics:
         # key: process id, value: [turnaround time, waiting time]
         self.processes: dict[int, tuple[int, int]] = {}
         self._current_start = {}
+        self._priorities: dict[int, int] = {}  # pid -> priority, for chart labeling
         self.awt = 0  # average waiting time
         self.att = 0  # average turnaround time
 
@@ -16,11 +17,13 @@ class Metrics:
         waiting_time = turnaround_time - process.burst_time
 
         self.processes[process.pid] = (turnaround_time, waiting_time)
+        self._priorities[process.pid] = process.priority
         self._recalculate_att()
         self._recalculate_awt()
 
     def record_start(self, process, time):
         self._current_start[process.pid] = time
+        self._priorities[process.pid] = process.priority
 
     def record_end(self, process, time):
         start = self._current_start.pop(process.pid, None)
@@ -52,13 +55,20 @@ class Metrics:
             lines.append(f"  P{pid}: t={start} → t={end} (duration={end - start})")
         return "\n".join(lines)
 
-    def plot_gantt(self, title: str = "CPU Scheduling Gantt Chart"):
+    def plot_gantt(self, title: str = "CPU Scheduling Gantt Chart", color_map: dict[str, str] | None = None):
         rows = []
         for pid, start, end in self.segments:
             rows.append({
                 "Process": f"P{pid}",
                 "Start": start,
-                "Duration": end - start
+                "Finish": end,
+                # Duration drives the bar's geometry (length); px.bar needs a
+                # length value paired with `base`, not an absolute time, or
+                # the bar would be drawn far too long. Finish is what we show
+                # to the user instead, since "where does this end" is more
+                # readable than "how long is this".
+                "Duration": end - start,
+                "Priority": self._priorities.get(pid),
             })
 
         df = pd.DataFrame(rows)
@@ -69,9 +79,14 @@ class Metrics:
             y="Process",
             base="Start",
             color="Process",
+            color_discrete_map=color_map,
             title=title,
-            orientation="h"
+            orientation="h",
+            text="Finish",
+            hover_data={"Start": True, "Finish": True, "Priority": True, "Duration": False},
         )
+
+        fig.update_traces(texttemplate="t=%{text}", textposition="inside")
 
         fig.update_layout(
             xaxis_title="Time",
@@ -80,6 +95,18 @@ class Metrics:
         )
 
         fig.show()
+
+
+def build_process_color_map(pids: list[int]) -> dict[str, str]:
+    """Builds a fixed 'P{pid}' -> color mapping from a palette, keyed by a
+    stable (sorted) pid order. Pass the SAME list of pids (e.g. from the
+    original, un-deep-copied process list used across a comparison run) to
+    every plot_gantt() call so a given process gets the same color in every
+    algorithm's chart, instead of px.bar re-assigning colors per-chart based
+    on each run's own (different) first-appearance order."""
+    palette = px.colors.qualitative.Plotly
+    unique_pids = sorted(set(pids))
+    return {f"P{pid}": palette[i % len(palette)] for i, pid in enumerate(unique_pids)}
 
 
 def plot_comparison(results: dict[str, "Metrics"]):
